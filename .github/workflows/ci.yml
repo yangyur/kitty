@@ -205,3 +205,67 @@ jobs:
 
           - name: Run benchmarks
             run: ./benchmark.py
+
+    rocky8-package:
+        name: Rocky Linux 8 package (glibc 2.28)
+        runs-on: ubuntu-latest
+        container:
+          image: rockylinux:8
+        env:
+          CFLAGS: -funsigned-char
+          GO_VERSION: "1.26.6"
+          PYTHON_VERSION: "3.13.7"
+        steps:
+          - name: Checkout source code
+            uses: actions/checkout@v7.0.1
+            with:
+              fetch-depth: 0  # needed for :commit: docs role
+              persist-credentials: false
+
+          - name: Enable repositories and install base build deps
+            run: |
+              dnf -y install 'dnf-command(config-manager)'
+              dnf config-manager --set-enabled powertools
+              dnf -y install epel-release
+              dnf -y install gcc gcc-c++ make pkgconf-pkg-config git curl xz \
+                libxkbcommon-devel libxkbcommon-x11-devel libpng-devel \
+                lcms2-devel harfbuzz-devel libXrandr-devel libXinerama-devel \
+                libXcursor-devel libXi-devel mesa-libGL-devel libxcb-devel \
+                libX11-devel libX11-xcb-devel libdbus-devel libfontconfig-devel \
+                libcanberra-devel libuuid-devel systemd-devel cairo-devel \
+                wayland-devel wayland-protocols-devel glslang-devel \
+                openssl-devel zlib-devel
+
+          - name: Install Go (official tarball, repo has no 1.26)
+            run: |
+              curl -sSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o /tmp/go.tgz
+              rm -rf /usr/local/go
+              tar -C /usr/local -xzf /tmp/go.tgz
+              echo "/usr/local/go/bin" >> "$GITHUB_PATH"
+
+          - name: Install Python 3.13 (standalone build, repo has no 3.12+)
+            run: |
+              curl -sSL "https://github.com/indygreg/python-build-standalone/releases/download/20250218/cpython-${PYTHON_VERSION}+20250218-x86_64-unknown-linux-gnu-install_only.tar.gz" -o /tmp/py.tgz
+              mkdir -p /opt/python313
+              tar -C /opt/python313 -xzf /tmp/py.tgz
+              echo "/opt/python313/bin" >> "$GITHUB_PATH"
+
+          - name: Build kitty package
+            run: |
+              python3 -m pip install --upgrade pip
+              python3 -m pip install Pillow pygments
+              python3 setup.py linux-package --update-check-interval=0 --verbose
+
+          - name: Package the built artifact
+            run: |
+              VERSION=$(python3 -c "import kitty.constants as c; print(c.version)")
+              tar -C linux-package -cf "kitty-${VERSION}-rocky8-x86_64.tar" .
+              xz -9 "kitty-${VERSION}-rocky8-x86_64.tar"
+              echo "Built: kitty-${VERSION}-rocky8-x86_64.tar.xz"
+
+          - name: Upload build artifact
+            uses: actions/upload-artifact@v4
+            with:
+              name: kitty-rocky8-x86_64
+              path: "kitty-*-rocky8-x86_64.tar.xz"
+              if-no-files-found: error
