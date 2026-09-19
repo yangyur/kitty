@@ -232,7 +232,7 @@ jobs:
                 libxkbcommon-devel libxkbcommon-x11-devel libpng-devel \
                 lcms2-devel harfbuzz-devel libXrandr-devel libXinerama-devel \
                 libXcursor-devel libXi-devel mesa-libGL-devel libxcb-devel \
-                libX11-devel libX11-xcb-devel dbus-devel fontconfig-devel \
+                libX11-devel dbus-devel fontconfig-devel \
                 libcanberra-devel libuuid-devel systemd-devel cairo-devel \
                 wayland-devel wayland-protocols-devel \
                 openssl-devel zlib-devel
