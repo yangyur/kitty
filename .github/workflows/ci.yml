@@ -224,17 +224,22 @@ jobs:
 
           - name: Enable repositories and install base build deps
             run: |
-              dnf -y install 'dnf-command(config-manager)'
-              dnf config-manager --set-enabled powertools
+              dnf -y install 'dnf-command(config-manager)' dnf-plugins-core
+              dnf config-manager --set-enabled powertools || dnf config-manager --set-enabled PowerTools || true
               dnf -y install epel-release
+              dnf -y makecache
               dnf -y install gcc gcc-c++ make pkgconf-pkg-config git curl xz \
                 libxkbcommon-devel libxkbcommon-x11-devel libpng-devel \
                 lcms2-devel harfbuzz-devel libXrandr-devel libXinerama-devel \
                 libXcursor-devel libXi-devel mesa-libGL-devel libxcb-devel \
-                libX11-devel libX11-XCB-devel dbus-devel fontconfig-devel \
+                libX11-devel libX11-xcb-devel dbus-devel fontconfig-devel \
                 libcanberra-devel libuuid-devel systemd-devel cairo-devel \
-                wayland-devel wayland-protocols-devel glslang \
+                wayland-devel wayland-protocols-devel \
                 openssl-devel zlib-devel
+              # glslang is only needed for the optional shaders build; try EPEL but do not fail the job
+              dnf -y install glslang || echo "glslang not available, continuing (optional)"
+              # simde + xxhash are not in Rocky repos, build/install from source below
+              dnf -y install libxxhash-devel || dnf -y install xxhash-devel || echo "libxxhash-devel missing, will handle in build step"
 
           - name: Install Go (official tarball, repo has no 1.26)
             run: |
