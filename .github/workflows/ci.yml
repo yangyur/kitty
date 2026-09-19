@@ -231,9 +231,9 @@ jobs:
                 libxkbcommon-devel libxkbcommon-x11-devel libpng-devel \
                 lcms2-devel harfbuzz-devel libXrandr-devel libXinerama-devel \
                 libXcursor-devel libXi-devel mesa-libGL-devel libxcb-devel \
-                libX11-devel libX11-xcb-devel dbus-devel libfontconfig-devel \
+                libX11-devel libX11-XCB-devel dbus-devel fontconfig-devel \
                 libcanberra-devel libuuid-devel systemd-devel cairo-devel \
-                wayland-devel wayland-protocols-devel glslang-devel \
+                wayland-devel wayland-protocols-devel glslang \
                 openssl-devel zlib-devel
 
           - name: Install Go (official tarball, repo has no 1.26)
